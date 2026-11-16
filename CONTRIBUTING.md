@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping. DataAsset is intentionally small and evidence-first.
+Thanks for helping. Schema Impact Map is intentionally small and evidence-first.
 
 ## Development setup
 
@@ -9,8 +9,8 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 pytest
-dataasset demo --out site
-dataasset check --data examples/shop
+schema-impact-map demo --out site
+schema-impact-map check --data examples/shop
 ```
 
 ## Good first issues
@@ -26,7 +26,7 @@ dataasset check --data examples/shop
 - Keep the demo data synthetic. Never commit real customer or company data.
 - Every new relation must carry `confidence`, `method` and evidence.
 - Add a test when changing graph orientation or impact semantics.
-- `dataasset check` must pass before opening a PR.
+- `schema-impact-map check` must pass before opening a PR.
 
 ## Pull requests
 

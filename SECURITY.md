@@ -1,6 +1,6 @@
 # Security
 
-DataAsset is a local, static-analysis tool.
+Schema Impact Map is a local, static-analysis tool.
 
 - Do not commit database credentials, real schema dumps, SQL from private repositories, or
   screenshots containing internal identifiers.

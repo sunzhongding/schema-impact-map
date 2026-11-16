@@ -104,10 +104,10 @@ def cmd_demo(args) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="dataasset",
+        prog="schema-impact-map",
         description="Interactive relational schema map with impact highlighting.",
     )
-    parser.add_argument("--version", action="version", version=f"dataasset {__version__}")
+    parser.add_argument("--version", action="version", version=f"schema-impact-map {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
 
     build = sub.add_parser("build", help="build graph JSON from a data directory")

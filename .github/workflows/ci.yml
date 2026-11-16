@@ -18,5 +18,5 @@ jobs:
           cache: pip
       - run: pip install -e ".[dev]"
       - run: pytest
-      - run: dataasset check --data examples/shop
-      - run: dataasset demo --out site
+      - run: schema-impact-map check --data examples/shop
+      - run: schema-impact-map demo --out site

@@ -1,4 +1,4 @@
-# DataAsset
+# Schema Impact Map
 
 **An impact-aware map of relational data assets.**
 
@@ -6,15 +6,15 @@
 [![pages](https://github.com/sunzhongding/schema-impact-map/actions/workflows/pages.yml/badge.svg)](https://github.com/sunzhongding/schema-impact-map/actions/workflows/pages.yml)
 
 > Repository: [`sunzhongding/schema-impact-map`](https://github.com/sunzhongding/schema-impact-map)
-> · Python package / CLI: `dataasset`
+> · CLI: `schema-impact-map` · Python: `schema_impact_map`
 
-DataAsset turns a relational schema into a single interactive map of databases, tables and
-columns, connects the columns that reference each other, and highlights what a proposed
-change will break — in red, orange and yellow.
+Schema Impact Map turns a relational schema into a single interactive map of databases,
+tables and columns, connects the columns that reference each other, and highlights what a
+proposed change will break — in red, orange and yellow.
 
-![DataAsset map](docs/map.png)
+![Schema Impact Map](docs/map.png)
 
-Most schema tools draw an ERD. DataAsset answers a different question:
+Most schema tools draw an ERD. Schema Impact Map answers a different question:
 
 > *If I change this column, which fields, relationships and SQL statements are affected?*
 
@@ -28,7 +28,7 @@ HTML — no server, no credentials in the browser, no database connection requir
 - Many production databases have no foreign keys; relationships live in SQL, naming and data.
 - AI makes schema changes cheap to propose and expensive to review. Review needs evidence.
 
-DataAsset keeps the evidence:
+It keeps the evidence:
 
 | Evidence | Meaning | Typical confidence |
 |---|---|---|
@@ -50,7 +50,7 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 
-dataasset demo
+schema-impact-map demo
 open site/index.html
 ```
 
@@ -78,8 +78,8 @@ examples/shop/
         │
         ▼
 
-dataasset build  ───►  graph.json  ───►  dataasset map  ───►  interactive HTML
-                                      └─ dataasset impact ───►  highlighted HTML
+schema-impact-map build ──► graph.json ──┬──► schema-impact-map map    ──► interactive HTML
+                                         └──► schema-impact-map impact ──► highlighted HTML
 ```
 
 ### 1. Schema + relations
@@ -121,7 +121,7 @@ changes:
 ```
 
 ```bash
-dataasset impact --plan examples/shop/plans/customer-key.yaml --out site/impact.html
+schema-impact-map impact --plan examples/shop/plans/customer-key.yaml --out site/impact.html
 ```
 
 Colors:
@@ -139,7 +139,7 @@ tables. Click any item to focus it. “Impact only” fades everything unrelated
 A data directory is just text:
 
 ```yaml
-# dataasset.yaml
+# schema-impact-map.yaml
 name: shop-demo
 dialect: mysql
 default_database: shop
@@ -153,17 +153,17 @@ sql: sql
 - `entities.yaml`: canonical / aliases / business keys (human decisions)
 - `rules.yaml`: `*_id` patterns and columns that are not relationships
 - `sql/`: `.sql` files whose joins are parsed into field-level edges
-- `plans/`: YAML deltas for `dataasset impact`
+- `plans/`: YAML deltas for `schema-impact-map impact`
 
 ## Commands
 
 ```bash
-dataasset build  --data examples/shop --out dist
-dataasset map    --data examples/shop --out site/map.html
-dataasset impact --data examples/shop --plan examples/shop/plans/customer-key.yaml \
-                 --out site/impact.html
-dataasset check  --data examples/shop
-dataasset demo   --data examples/shop --out site
+schema-impact-map build  --data examples/shop --out dist
+schema-impact-map map    --data examples/shop --out site/map.html
+schema-impact-map impact --data examples/shop --plan examples/shop/plans/customer-key.yaml \
+                          --out site/impact.html
+schema-impact-map check  --data examples/shop
+schema-impact-map demo   --data examples/shop --out site
 ```
 
 `check` validates:
@@ -215,11 +215,11 @@ MyBatis XML extractor, add a PostgreSQL test fixture, improve the map layout.
 
 ## 中文简介
 
-DataAsset 把关系型数据库的库、表、字段画成一张可拖拽/缩放的地图，并把字段之间的关系连起来。
+Schema Impact Map 把关系型数据库的库、表、字段画成一张可拖拽/缩放的地图，并把字段之间的关系连起来。
 给一个“方案变更” YAML，它会把受影响的字段、关系边和 SQL 用红/橙/黄标出来。
 
 ```bash
-dataasset demo
+schema-impact-map demo
 open site/index.html      # 交互地图
 open site/impact.html     # 影响高亮
 ```

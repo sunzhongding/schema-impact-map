@@ -25,7 +25,7 @@ def _edge_priority(kind: str) -> int:
 class Builder:
     def __init__(self, data_dir: Path):
         self.data_dir = data_dir
-        self.config = load_yaml(data_dir / "dataasset.yaml")
+        self.config = load_yaml(data_dir / "schema-impact-map.yaml")
         self.schema = load_json(data_dir / self.config.get("schema", "schema.json"))
         self.entities_cfg = load_yaml(data_dir / self.config.get("entities", "entities.yaml"))
         self.rules = load_yaml(data_dir / self.config.get("rules", "rules.yaml"))

@@ -372,9 +372,9 @@ def render_html(graph: dict, impact: dict | None = None, focus: str | None = Non
     layout = _layout(graph)
     svg, impact_active = _svg(graph, layout, impact)
     panel = _panel(graph, impact)
-    title = "DataAsset · schema impact map"
+    title = "Schema Impact Map"
     if impact_active:
-        title = f"DataAsset · impact · {impact['name']}"
+        title = f"Schema Impact Map · {impact['name']}"
     subtitle = (
         f"{graph['name']} · {len(graph['databases'])} databases / {len(graph['tables'])} tables / "
         f"{len(graph['columns'])} columns / {len(graph['edges'])} edges"

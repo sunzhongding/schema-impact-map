@@ -3,7 +3,7 @@ requires = ["hatchling>=1.24"]
 build-backend = "hatchling.build"
 
 [project]
-name = "dataasset"
+name = "schema-impact-map"
 version = "0.1.0"
 description = "Interactive relational schema map with impact highlighting for proposed changes."
 readme = "README.md"
@@ -36,10 +36,10 @@ Repository = "https://github.com/sunzhongding/schema-impact-map"
 Issues = "https://github.com/sunzhongding/schema-impact-map/issues"
 
 [project.scripts]
-dataasset = "dataasset.cli:main"
+schema-impact-map = "schema_impact_map.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/dataasset"]
+packages = ["src/schema_impact_map"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

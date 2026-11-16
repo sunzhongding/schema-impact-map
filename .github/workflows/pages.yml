@@ -24,7 +24,7 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -e .
-      - run: dataasset demo --out site
+      - run: schema-impact-map demo --out site
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

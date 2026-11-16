@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from dataasset.build import build_from_dir
-from dataasset.impact import analyze_file
+from schema_impact_map.build import build_from_dir
+from schema_impact_map.impact import analyze_file
 
 DATA = Path(__file__).resolve().parents[1] / "examples" / "shop"
 

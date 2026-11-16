@@ -1,6 +1,6 @@
 # Shop demo
 
-Synthetic four-database commerce schema used by `dataasset demo`.
+Synthetic four-database commerce schema used by `schema-impact-map demo`.
 
 ```
 crm      customers, customer_profiles
@@ -13,12 +13,13 @@ ops      agents
 - `schema.json` declares cross-database relations.
 - `sql/*.sql` contains joins that are parsed by sqlglot.
 - `entities.yaml` records the human decision that one customer has several physical columns.
-- `plans/*.yaml` are what-if changes used by `dataasset impact`.
+- `plans/*.yaml` are what-if changes used by `schema-impact-map impact`.
 
 Try:
 
 ```bash
-dataasset check --data examples/shop
-dataasset demo --out site
-dataasset impact --data examples/shop --plan examples/shop/plans/customer-key.yaml --out site/impact.html
+schema-impact-map check --data examples/shop
+schema-impact-map demo --out site
+schema-impact-map impact --data examples/shop \
+    --plan examples/shop/plans/customer-key.yaml --out site/impact.html
 ```

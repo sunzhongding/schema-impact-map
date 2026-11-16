@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from dataasset.build import build_from_dir
+from schema_impact_map.build import build_from_dir
 
 DATA = Path(__file__).resolve().parents[1] / "examples" / "shop"
 

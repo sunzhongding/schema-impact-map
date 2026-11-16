@@ -1,9 +1,9 @@
 import re
 from pathlib import Path
 
-from dataasset.build import build_from_dir
-from dataasset.impact import analyze_file
-from dataasset.render import render_html
+from schema_impact_map.build import build_from_dir
+from schema_impact_map.impact import analyze_file
+from schema_impact_map.render import render_html
 
 DATA = Path(__file__).resolve().parents[1] / "examples" / "shop"
 
