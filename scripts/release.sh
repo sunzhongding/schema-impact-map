@@ -77,7 +77,7 @@ NOTES="$(awk -v header="## $VERSION" '
 ' CHANGELOG.md)"
 printf '%s' "$NOTES" | grep -q . || die "CHANGELOG.md has no '## $VERSION' section"
 
-SLUG="$(git remote get-url origin | sed -E 's#.*[:/]([^/]+/[^/]+?)(\.git)?$#\1#')"
+SLUG="$(git remote get-url origin | awk -F'[:/]' '{print $(NF-1)"/"$NF}' | sed 's/\.git$//')"
 say "release: $TAG"
 say "commit:  $(git log -1 --format='%h %s')"
 say "repo:    $SLUG"
