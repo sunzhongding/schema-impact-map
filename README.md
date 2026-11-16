@@ -43,7 +43,7 @@ databases connected by declared relationships and SQL joins.
 ## Quick start
 
 ```bash
-git clone git@github.com:sunzhongding/schema-impact-map.git
+git clone https://github.com/sunzhongding/schema-impact-map.git
 cd schema-impact-map
 
 python -m venv .venv

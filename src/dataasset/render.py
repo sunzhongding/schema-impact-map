@@ -19,6 +19,11 @@ def _e(value) -> str:
     return html.escape(str(value or ""))
 
 
+def _count(n: int, word: str) -> str:
+    """Pluralised count, e.g. ``1 table`` / ``6 columns``."""
+    return f"{n} {word}" if n == 1 else f"{n} {word}s"
+
+
 def _impact_classes(qualified: str, impact: dict | None) -> str:
     if not impact:
         return ""
@@ -163,7 +168,7 @@ def _svg(graph: dict, layout: dict, impact: dict | None) -> str:
             f'<text class="db-title" x="{box["x"] + 14}" y="{box["y"] + 22}" font-size="13" '
             f'font-weight="600">{_e(box["name"])} '
             f'<tspan font-weight="400" font-size="11" fill="#6b7280">'
-            f'{box["tables"]} 表 / {box["columns"]} 字段</tspan></text>'
+            f'{_count(box["tables"], "table")} / {_count(box["columns"], "column")}</tspan></text>'
         )
 
     normal_edges = []
@@ -224,7 +229,7 @@ def _svg(graph: dict, layout: dict, impact: dict | None) -> str:
             f'<text class="table-name" x="{x + 12}" y="{y + 19}" font-size="12" font-weight="600">'
             f'{_e(table["name"])}</text>'
             f'<text class="table-meta" x="{x + w - 12}" y="{y + 19}" font-size="10" '
-            f'text-anchor="end">{len(table["columns"])} 字段</text></g>'
+            f'text-anchor="end">{_count(len(table["columns"]), "column")}</text></g>'
         )
         for index, column in enumerate(table["columns"]):
             row = index // 2
@@ -318,8 +323,8 @@ def _panel(graph: dict, impact: dict | None) -> str:
             rows.append("</section>")
         rows.append(
             '<section class="howto"><h3>Colors</h3>'
-            '<p><span class="dot red"></span>changed / breaking　'
-            '<span class="dot amber"></span>affected　'
+            '<p><span class="dot red"></span>changed / breaking&nbsp;&nbsp;'
+            '<span class="dot amber"></span>affected&nbsp;&nbsp;'
             '<span class="dot yellow"></span>collision</p>'
             "<p>Click an item to focus. Red edges are impacted relationships.</p></section>"
         )
@@ -345,8 +350,8 @@ def _panel(graph: dict, impact: dict | None) -> str:
         + ("".join(entity_rows) or '<p class="more">none</p>')
         + "</section>"
         + '<section class="howto"><h3>Legend</h3>'
-        '<p><span class="badge c">C</span> canonical　'
-        '<span class="badge a">A</span> alias　<span class="badge k">K</span> business key</p>'
+        '<p><span class="badge c">C</span> canonical&nbsp;&nbsp;'
+        '<span class="badge a">A</span> alias&nbsp;&nbsp;<span class="badge k">K</span> business key</p>'
         "<p>Drag to pan, scroll to zoom, double-click / button to fit.</p></section>"
     )
 
@@ -487,8 +492,8 @@ def render_html(graph: dict, impact: dict | None = None, focus: str | None = Non
       {toggle}
       <input id="search" class="search" placeholder="Search table / column…" autocomplete="off">
       <button class="btn" data-act="fit">Fit</button>
-      <button class="btn" data-act="in">＋</button>
-      <button class="btn" data-act="out">－</button>
+      <button class="btn" data-act="in">+</button>
+      <button class="btn" data-act="out">−</button>
     </div>
   </header>
   <main>

@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 from dataasset.build import build_from_dir
@@ -34,3 +35,13 @@ def test_add_column_renders_proposed_row():
     assert 'data-q="shop.refunds.status"' in page
     assert "changed-add" in page
     assert "shop.orders.status" in page
+
+
+def test_rendered_pages_have_english_labels_only():
+    """The UI is English; keep CJK or full-width glyphs out of the generated HTML."""
+    graph = build_from_dir(DATA)
+    payload = analyze_file(graph, DATA / "plans" / "customer-key.yaml")
+    pages = {"map": render_html(graph), "impact": render_html(payload["graph"], payload)}
+    for name, page in pages.items():
+        leftovers = re.findall(r"[\u3000\u4e00-\u9fff\uff00-\uffef]+", page)
+        assert not leftovers, f"{name} page has non-English labels: {leftovers[:5]}"
