@@ -20,6 +20,7 @@ from pathlib import Path
 from . import __version__
 from .build import CONFIG_FILE, build_from_dir
 from .impact import analyze
+from .introspect import write_sqlite_ledger
 from .io import DataError, load_yaml, load_yaml_text
 from .render import write_html
 
@@ -35,7 +36,9 @@ Workflow:
 3. `render` only when the user wants a page they can open or share.
 
 `data_dir` points at a ledger folder: schema-impact-map.yaml + schema.json +
-entities.yaml + rules.yaml + sql/ (see examples/shop in the repository).
+entities.yaml + rules.yaml + sql/ (see examples/shop in the repository). When the user
+points at a SQLite file and there is no ledger yet, `introspect_sqlite` writes one from the
+file's schema metadata (read-only, no credentials).
 All tools read local files only; no database connection, no credentials, no uploads."""
 
 PLAN_HINT = (
@@ -210,6 +213,32 @@ def render(
         return {"ok": False, "error": str(exc)}
 
 
+def introspect_sqlite(
+    db_path: str,
+    out_dir: str = ".",
+    name: str | None = None,
+    force: bool = False,
+    write_config: bool = False,
+) -> dict:
+    """Generate ``schema.json`` from a SQLite file, opened read-only.
+
+    Use this when the user points at a ``.db`` / ``.sqlite`` file and the repository
+    has no ledger yet. Only schema metadata is read: no rows, no credentials.
+    ``write_config`` also creates a starter ledger next to it (never overwrites).
+    """
+    try:
+        result = write_sqlite_ledger(
+            Path(db_path),
+            Path(out_dir),
+            database=name,
+            force=force,
+            write_config=write_config,
+        )
+    except DataError as exc:
+        return {"ok": False, "error": str(exc)}
+    return {"ok": True, **result}
+
+
 def create_server():
     """Build the MCP server; imported lazily so the CLI works without the extra."""
     from mcp.server.mcpserver import MCPServer
@@ -219,7 +248,7 @@ def create_server():
         version=__version__,
         instructions=INSTRUCTIONS,
     )
-    for tool in (build_graph, check, impact, render):
+    for tool in (build_graph, check, impact, render, introspect_sqlite):
         server.add_tool(tool)
     return server
 

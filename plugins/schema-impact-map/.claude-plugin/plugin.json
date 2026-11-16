@@ -1,6 +1,6 @@
 {
   "name": "schema-impact-map",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Impact map for relational schema changes: which columns, relationships and SQL statements break.",
   "author": {
     "name": "sunzhongding"

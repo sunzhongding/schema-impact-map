@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0
+
+- SQLite introspection: `schema-impact-map introspect --sqlite app.db --out ledger`
+  writes `schema.json` (and `--write-config` a starter ledger) from a file opened
+  read-only — tables, columns, primary keys, unique columns and foreign keys
+- `introspect_sqlite` MCP tool so an agent can turn a `.db` file into a ledger
+- `dialect: sqlite` SQL parsing, and views/virtual tables/composite foreign keys are
+  reported as warnings instead of being guessed
+- integration docs unchanged; the plugin and marketplace versions move to 0.3.0
+
 ## 0.2.0
 
 - `schema-impact-map mcp`: stdio MCP server with `check`, `impact`, `render` and `build_graph`

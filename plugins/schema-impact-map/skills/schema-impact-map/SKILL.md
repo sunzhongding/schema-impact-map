@@ -35,8 +35,10 @@ ledger/
 └── plans/                   # optional what-if YAML files
 ```
 
-If the repository has no ledger, say so instead of inventing one; offer to generate
-`schema.json` from `information_schema` (read-only) or from DDL files.
+If the repository has no ledger, say so instead of inventing one. A SQLite file can become
+one without a server: `schema-impact-map introspect --sqlite app.db --out ledger --write-config`
+opens it read-only and writes `schema.json` plus a starter config. For other engines, offer to
+generate `schema.json` from `information_schema` (read-only) or from DDL files.
 
 ## Commands
 

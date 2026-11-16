@@ -72,14 +72,35 @@ def test_render_writes_map_and_impact(tmp_path):
     assert "changed-add" in page
 
 
-def test_create_server_registers_the_four_tools():
+TOOLS = {"build_graph", "check", "impact", "render", "introspect_sqlite"}
+
+
+def test_create_server_registers_the_tools():
     server = tools.create_server()
-    assert {tool.name for tool in asyncio.run(server.list_tools())} == {
-        "build_graph",
-        "check",
-        "impact",
-        "render",
-    }
+    assert {tool.name for tool in asyncio.run(server.list_tools())} == TOOLS
+
+
+def test_introspect_sqlite_tool(tmp_path):
+    import sqlite3
+
+    db = tmp_path / "shop.db"
+    conn = sqlite3.connect(db)
+    conn.executescript(
+        "CREATE TABLE customers (id INTEGER PRIMARY KEY, email TEXT UNIQUE);"
+        "CREATE TABLE orders (id INTEGER PRIMARY KEY,"
+        " customer_id INTEGER REFERENCES customers(id));"
+    )
+    conn.commit()
+    conn.close()
+
+    result = tools.introspect_sqlite(str(db), str(tmp_path / "ledger"), write_config=True)
+    assert result["ok"] is True
+    assert result["tables"] == 2
+    assert result["relations"] == 1
+
+    again = tools.introspect_sqlite(str(db), str(tmp_path / "ledger"))
+    assert again["ok"] is False
+    assert "exists" in again["error"]
 
 
 def test_stdio_roundtrip():
@@ -93,7 +114,7 @@ def test_stdio_roundtrip():
                 info = await session.initialize()
                 assert info.server_info.name == "schema-impact-map"
                 names = {tool.name for tool in (await session.list_tools()).tools}
-                assert names == {"build_graph", "check", "impact", "render"}
+                assert names == TOOLS
 
                 result = await session.call_tool("check", {"data_dir": str(DATA)})
                 assert result.is_error is False

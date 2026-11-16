@@ -7,6 +7,7 @@ from pathlib import Path
 from . import __version__
 from .build import build_from_dir
 from .impact import analyze_file
+from .introspect import write_sqlite_ledger
 from .io import DataError, write_json
 from .render import write_html
 
@@ -102,6 +103,25 @@ def cmd_demo(args) -> int:
     return 0
 
 
+def cmd_introspect(args) -> int:
+    result = write_sqlite_ledger(
+        args.sqlite,
+        args.out,
+        database=args.name,
+        force=args.force,
+        write_config=args.write_config,
+    )
+    print(
+        f"sqlite: {result['tables']} tables / {result['columns']} columns / "
+        f"{result['relations']} relations -> {result['schema']}"
+    )
+    for warning in result["warnings"]:
+        print(f"  ! {warning}", file=sys.stderr)
+    for path in result["created"][1:]:
+        print(f"-> {path}")
+    return 0
+
+
 def cmd_mcp(args) -> int:
     from .mcp import main as serve_mcp
 
@@ -141,6 +161,29 @@ def build_parser() -> argparse.ArgumentParser:
     demo.add_argument("--data", type=Path, default=DEFAULT_DATA)
     demo.add_argument("--out", type=Path, default=DEFAULT_OUT)
     demo.set_defaults(func=cmd_demo)
+
+    introspect = sub.add_parser(
+        "introspect",
+        help="generate schema.json from a SQLite file (read-only, no credentials)",
+    )
+    introspect.add_argument(
+        "--sqlite", type=Path, required=True, help="SQLite file to read (opened read-only)"
+    )
+    introspect.add_argument(
+        "--name", help="database name used in qualified names (default: file stem)"
+    )
+    introspect.add_argument(
+        "--out", type=Path, default=Path("."), help="directory that receives schema.json"
+    )
+    introspect.add_argument(
+        "--force", action="store_true", help="overwrite an existing schema.json"
+    )
+    introspect.add_argument(
+        "--write-config",
+        action="store_true",
+        help="also write schema-impact-map.yaml / entities.yaml / rules.yaml if missing",
+    )
+    introspect.set_defaults(func=cmd_introspect)
 
     sub.add_parser(
         "mcp",

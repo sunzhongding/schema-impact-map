@@ -64,6 +64,21 @@ open site/index.html
 No database is needed. The demo is generated from the synthetic files in
 [`examples/shop`](examples/shop).
 
+### From a SQLite file
+
+Already have a `.db`? Turn it into a ledger without a server or credentials — the file is
+opened read-only and only schema metadata is read:
+
+```bash
+schema-impact-map introspect --sqlite app.db --out ledger --write-config
+schema-impact-map check --data ledger
+schema-impact-map demo  --data ledger --out site
+```
+
+`--write-config` adds `schema-impact-map.yaml` (`dialect: sqlite`), `entities.yaml`,
+`rules.yaml` and an empty `sql/` next to `schema.json`; existing files are never overwritten.
+Views, virtual tables and composite foreign keys are reported as warnings and skipped.
+
 | Page | What it shows |
 |---|---|
 | `site/index.html` | interactive map: drag, zoom, search, fit |
@@ -162,6 +177,10 @@ sql: sql
 - `sql/`: `.sql` files whose joins are parsed into field-level edges
 - `plans/`: YAML deltas for `schema-impact-map impact`
 
+`schema.json` can be written by hand or generated from a SQLite file with `introspect`;
+`dialect` accepts anything [sqlglot](https://github.com/tobymao/sqlglot) understands
+(`mysql`, `postgres`, `sqlite`, `bigquery`, ...).
+
 ## Commands
 
 ```bash
@@ -171,6 +190,7 @@ schema-impact-map impact --data examples/shop --plan examples/shop/plans/custome
                           --out site/impact.html
 schema-impact-map check  --data examples/shop
 schema-impact-map demo   --data examples/shop --out site
+schema-impact-map introspect --sqlite app.db --out ledger   # schema.json from a SQLite file
 schema-impact-map mcp    # serve the MCP tools over stdio
 ```
 
@@ -188,7 +208,7 @@ pick up.
 
 ```bash
 uv tool install "schema-impact-map[mcp]"   # or: pipx install "schema-impact-map[mcp]"
-schema-impact-map mcp                      # MCP tools: check, impact, render, build_graph
+schema-impact-map mcp                      # MCP tools: check, impact, render, build_graph, introspect_sqlite
 ```
 
 | Client | What to install | Guide |
@@ -212,7 +232,7 @@ This is:
 This is not (yet):
 
 - a full data catalog or governance platform
-- a live database scanner — v0.1 reads a schema JSON; a MySQL/PostgreSQL connector is on the roadmap
+- a live database scanner — it reads a ledger; SQLite files can be introspected read-only, MySQL/PostgreSQL are on the roadmap
 - a runtime lineage tool — it reasons over schema + SQL text, not query logs
 - a complete SQL parser — complex/dynamic SQL should be added as test fixtures
 
@@ -224,8 +244,9 @@ The demo already models four databases and cross-database relations. The next st
 |---|---|
 | 0.1 | demo schema JSON, SQL files, entity map, impact map (released) |
 | 0.2 | MCP server + agent plugin for Claude Code, Codex, ZCode and WorkBuddy (released) |
-| 0.3 | MySQL + PostgreSQL introspection (read-only `information_schema`) |
-| 0.4 | value-overlap probing; a GitHub Action that posts an impact map on PRs |
+| 0.3 | SQLite introspection (`introspect --sqlite`) and `dialect: sqlite` (this release) |
+| 0.4 | MySQL + PostgreSQL introspection (read-only `information_schema`) |
+| 0.5 | value-overlap probing; a GitHub Action that posts an impact map on PRs |
 
 The qualified name is designed to grow from `database.table.column` to
 `instance.database.schema.table.column`; see [docs/design.md](docs/design.md).
@@ -236,6 +257,7 @@ The qualified name is designed to grow from `database.table.column` to
 - The tool never stores database credentials.
 - The generated HTML is self-contained (no CDN, no telemetry).
 - The map only contains schema names and declared relations, not row values.
+- SQLite introspection opens the file read-only and reads schema metadata only, no rows.
 
 ## Contributing
 
