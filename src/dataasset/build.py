@@ -87,14 +87,15 @@ class Builder:
         column = self.columns.get(qualified)
         if not column:
             return False
-        # 单列主键 / 单列唯一键才算父键；复合主键的一部分不算
+        # only a single-column PK / single-column UNIQUE key is a parent key;
+        # one column of a composite key is not
         table = self.tables.get(column["table"], {})
         if column["pk"] and sum(1 for c in table.get("columns", []) if c["pk"]) == 1:
             return True
         return column["unique"]
 
     def _orient(self, left: str, right: str) -> tuple[str, str]:
-        """返回 (child, parent)。"""
+        """Return ``(child, parent)``."""
         left_key, right_key = self._is_key(left), self._is_key(right)
         if right_key and not left_key:
             return left, right
@@ -127,7 +128,7 @@ class Builder:
         if not existing:
             relations[key] = incoming
             return
-        # 同一个 child->parent 保留最强证据，并把方法合并出来
+        # keep the strongest evidence per child->parent and merge the methods
         if _edge_priority(kind) > _edge_priority(existing["kind"]):
             existing.update(incoming)
         elif kind == "fk" and "sql_join" not in existing["method"]:
@@ -298,7 +299,7 @@ class Builder:
         entities, entity_edges = self.build_entities()
         edges = relation_edges + entity_edges
 
-        # node 列表：数据库 / 表 / 字段 / 实体
+        # node list: database / table / column / entity
         tables = sorted(self.tables.values(), key=lambda table: table["qualified"])
         columns = sorted(self.columns.values(), key=lambda column: column["qualified"])
         check = self.check(tables, entities, edges)
