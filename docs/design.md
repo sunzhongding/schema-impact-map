@@ -102,6 +102,10 @@ value overlap) and a human confirmation. A single naming match is never enough.
 - Automatic joins without evidence
 - Frontend component scanning
 - A hosted control plane in v0.1
+- A change-history or snapshot store: every run reads the ledger and writes only the file you
+  asked for, so there is no audit database and no retained impact result to keep or clean up
+- A metadata warehouse: the ledger and the generated page live in the user's repository, not
+  in a service we operate
 
 The point is a small, auditable artifact that can sit next to the code and be reviewed in a
 PR — not another service to operate.

@@ -2,6 +2,8 @@
 
 **An impact-aware map of relational data assets.**
 
+*Readable context before an agent writes; evidence before the change lands.*
+
 [![ci](https://github.com/sunzhongding/schema-impact-map/actions/workflows/ci.yml/badge.svg)](https://github.com/sunzhongding/schema-impact-map/actions/workflows/ci.yml)
 [![pages](https://github.com/sunzhongding/schema-impact-map/actions/workflows/pages.yml/badge.svg)](https://github.com/sunzhongding/schema-impact-map/actions/workflows/pages.yml)
 
@@ -24,9 +26,14 @@ HTML — no server, no credentials in the browser, no database connection requir
 
 ## Why
 
-- Relational schemas are assets, but their relationships rarely live in one place.
-- Many production databases have no foreign keys; relationships live in SQL, naming and data.
-- AI makes schema changes cheap to propose and expensive to review. Review needs evidence.
+AI can propose a schema change in seconds; reviewing one still costs a human an afternoon.
+Most production schemas also have no complete set of foreign keys — relationships live in
+SQL, naming and data. The work splits at two checkpoints:
+
+- **Before an agent writes** — the ledger makes the relationships readable: databases,
+  tables, columns, keys, SQL joins and human decisions as text, not a live database.
+- **Before the change lands** — the impact map makes the blast radius reviewable: changed
+  columns, affected columns, naming collisions and affected SQL, each with its evidence.
 
 It keeps the evidence:
 
@@ -215,10 +222,10 @@ The demo already models four databases and cross-database relations. The next st
 
 | Version | Scope |
 |---|---|
-| 0.1 | demo schema JSON, SQL files, entity map, impact map (this release) |
-| 0.2 | MySQL + PostgreSQL connectors; same-instance cross-schema |
-| 0.3 | cross-instance value-overlap probing (sampling to DuckDB/Arrow), not full data pulls |
-| 0.4 | runtime evidence (query logs / audit) and a GitHub Action that posts an impact map on PRs |
+| 0.1 | demo schema JSON, SQL files, entity map, impact map (released) |
+| 0.2 | MCP server + agent plugin for Claude Code, Codex, ZCode and WorkBuddy (released) |
+| 0.3 | MySQL + PostgreSQL introspection (read-only `information_schema`) |
+| 0.4 | value-overlap probing; a GitHub Action that posts an impact map on PRs |
 
 The qualified name is designed to grow from `database.table.column` to
 `instance.database.schema.table.column`; see [docs/design.md](docs/design.md).
@@ -236,6 +243,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Good first issues: add a MySQL connector
 MyBatis XML extractor, add a PostgreSQL test fixture, improve the map layout.
 
 ## 中文简介
+
+在 AI 动手前，让数据关系可读；在变更落地前，让影响可查。
 
 Schema Impact Map 把关系型数据库的库、表、字段画成一张可拖拽/缩放的地图，并把字段之间的关系连起来。
 给一个“方案变更” YAML，它会把受影响的字段、关系边和 SQL 用红/橙/黄标出来。
