@@ -34,3 +34,17 @@ schema-impact-map check --data examples/shop
 2. Add tests and run `pytest`.
 3. Update README or docs if behaviour changes.
 4. Keep commits focused; describe the evidence model change.
+
+## Releasing
+
+The version lives in `src/schema_impact_map/__init__.py`; `pyproject.toml` reads it from
+there and `tests/test_plugin.py` fails if the plugin manifests drift.
+
+```bash
+scripts/release.sh --check     # clean main, in sync, version + CHANGELOG notes present
+scripts/release.sh --tag       # run tests, create and push v<version>
+scripts/release.sh --release   # also open the GitHub release (gh CLI or GITHUB_TOKEN)
+```
+
+Publishing to PyPI happens only when the GitHub release is published: `publish.yml` uses
+trusted publishing (OIDC), so no token is stored in the repository.
