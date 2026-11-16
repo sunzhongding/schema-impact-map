@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "schema-impact-map": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "schema-impact-map[mcp]",
+        "schema-impact-map",
+        "mcp"
+      ]
+    }
+  }
+}

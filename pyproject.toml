@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "schema-impact-map"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Interactive relational schema map with impact highlighting for proposed changes."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -28,7 +28,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "mcp>=2.0"]
+mcp = ["mcp>=2.0"]
 
 [project.urls]
 Homepage = "https://github.com/sunzhongding/schema-impact-map"
@@ -37,6 +38,9 @@ Issues = "https://github.com/sunzhongding/schema-impact-map/issues"
 
 [project.scripts]
 schema-impact-map = "schema_impact_map.cli:main"
+
+[tool.hatch.version]
+path = "src/schema_impact_map/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/schema_impact_map"]

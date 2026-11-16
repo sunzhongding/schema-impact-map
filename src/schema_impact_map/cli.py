@@ -102,6 +102,12 @@ def cmd_demo(args) -> int:
     return 0
 
 
+def cmd_mcp(args) -> int:
+    from .mcp import main as serve_mcp
+
+    return serve_mcp()
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="schema-impact-map",
@@ -135,6 +141,11 @@ def build_parser() -> argparse.ArgumentParser:
     demo.add_argument("--data", type=Path, default=DEFAULT_DATA)
     demo.add_argument("--out", type=Path, default=DEFAULT_OUT)
     demo.set_defaults(func=cmd_demo)
+
+    sub.add_parser(
+        "mcp",
+        help="serve the MCP tools over stdio for Claude Code, Codex, ZCode or WorkBuddy",
+    ).set_defaults(func=cmd_mcp)
 
     return parser
 

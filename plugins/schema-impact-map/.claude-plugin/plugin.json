@@ -1,0 +1,22 @@
+{
+  "name": "schema-impact-map",
+  "version": "0.2.0",
+  "description": "Impact map for relational schema changes: which columns, relationships and SQL statements break.",
+  "author": {
+    "name": "sunzhongding"
+  },
+  "homepage": "https://sunzhongding.github.io/schema-impact-map/",
+  "repository": "https://github.com/sunzhongding/schema-impact-map",
+  "license": "Apache-2.0",
+  "keywords": [
+    "database",
+    "schema",
+    "impact-analysis",
+    "data-lineage",
+    "sql",
+    "migration"
+  ],
+  "skills": "skills",
+  "commands": "commands",
+  "mcpServers": ".mcp.json"
+}

@@ -19,6 +19,14 @@ def load_json(path: Path) -> dict:
         raise DataError(f"invalid json: {path}: {exc}") from exc
 
 
+def load_yaml_text(text: str, source: str = "<inline>") -> dict:
+    """Parse YAML handed over by a client instead of read from a file."""
+    try:
+        return yaml.safe_load(text) or {}
+    except yaml.YAMLError as exc:
+        raise DataError(f"invalid yaml: {source}: {exc}") from exc
+
+
 def load_yaml(path: Path) -> dict:
     try:
         return yaml.safe_load(path.read_text(encoding="utf-8")) or {}

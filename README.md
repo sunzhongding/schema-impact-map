@@ -164,6 +164,7 @@ schema-impact-map impact --data examples/shop --plan examples/shop/plans/custome
                           --out site/impact.html
 schema-impact-map check  --data examples/shop
 schema-impact-map demo   --data examples/shop --out site
+schema-impact-map mcp    # serve the MCP tools over stdio
 ```
 
 `check` validates:
@@ -171,6 +172,27 @@ schema-impact-map demo   --data examples/shop --out site
 - every declared relation points to a real column
 - every entity member exists
 - every `*_id` column is explained by a relation or an entity (or ignored with a reason)
+
+## Use it from your agent
+
+The same graph is available inside AI coding clients: a stdio MCP server, plus a plugin
+package that Claude Code and ZCode load directly and a `SKILL.md` that Codex and WorkBuddy
+pick up.
+
+```bash
+uv tool install "schema-impact-map[mcp]"   # or: pipx install "schema-impact-map[mcp]"
+schema-impact-map mcp                      # MCP tools: check, impact, render, build_graph
+```
+
+| Client | What to install | Guide |
+|---|---|---|
+| **Claude Code** | `/plugin marketplace add sunzhongding/schema-impact-map` → `/plugin install schema-impact-map@schema-impact-map` | [docs/integrations/claude-code.md](docs/integrations/claude-code.md) |
+| **Codex** | MCP entry in `~/.codex/config.toml` + skill in `~/.codex/skills/` | [docs/integrations/codex.md](docs/integrations/codex.md) |
+| **ZCode** | add this repository as a plugin market | [docs/integrations/zcode.md](docs/integrations/zcode.md) |
+| **WorkBuddy** | `~/.workbuddy/mcp.json` + skill upload | [docs/integrations/workbuddy.md](docs/integrations/workbuddy.md) |
+
+All four tools are local and read-only: they read the ledger, parse SQL text, and write at
+most the HTML page you asked for. No database connection, no credentials, no network.
 
 ## What this is / is not
 

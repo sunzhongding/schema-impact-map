@@ -5,6 +5,8 @@ from pathlib import Path
 from .io import DataError, load_json, load_yaml
 from .sql import parse_sql_files
 
+CONFIG_FILE = "schema-impact-map.yaml"
+
 
 def _column_id(qualified: str) -> str:
     return f"column:{qualified}"
@@ -25,7 +27,7 @@ def _edge_priority(kind: str) -> int:
 class Builder:
     def __init__(self, data_dir: Path):
         self.data_dir = data_dir
-        self.config = load_yaml(data_dir / "schema-impact-map.yaml")
+        self.config = load_yaml(data_dir / CONFIG_FILE)
         self.schema = load_json(data_dir / self.config.get("schema", "schema.json"))
         self.entities_cfg = load_yaml(data_dir / self.config.get("entities", "entities.yaml"))
         self.rules = load_yaml(data_dir / self.config.get("rules", "rules.yaml"))

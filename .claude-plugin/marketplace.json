@@ -1,0 +1,21 @@
+{
+  "name": "schema-impact-map",
+  "description": "Impact maps for relational schema changes: which columns, relationships and SQL statements break.",
+  "plugins": [
+    {
+      "name": "schema-impact-map",
+      "source": "./plugins/schema-impact-map",
+      "description": "Check what a schema change touches before you touch it. Skills, a /impact command and an MCP server that read a text ledger and return the affected columns, joins and SQL statements.",
+      "version": "0.2.0",
+      "category": "developer-tools",
+      "tags": [
+        "database",
+        "schema",
+        "impact-analysis",
+        "data-lineage",
+        "sql",
+        "migration"
+      ]
+    }
+  ]
+}
