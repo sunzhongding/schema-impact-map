@@ -1,0 +1,23 @@
+entities:
+  customer:
+    title: Customer
+    canonical: crm.customers.id
+    aliases:
+      - shop.orders.customer_id
+      - crm.customer_profiles.customer_id
+      - billing.invoices.customer_id
+    alternate_keys:
+      - crm.customers.customer_code
+  order:
+    title: Order
+    canonical: shop.orders.id
+    aliases:
+      - shop.order_items.order_id
+      - shop.refunds.order_id
+      - billing.invoices.order_id
+      - shop.order_agents.order_id
+  agent:
+    title: Sales agent
+    canonical: ops.agents.id
+    aliases:
+      - shop.order_agents.agent_id

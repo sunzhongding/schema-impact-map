@@ -1,0 +1,12 @@
+name: Add refund status
+description: |
+  A new refund status column. The map shows the proposed column in orange
+  and flags status columns in other tables that may describe the same concept.
+changes:
+  add_columns:
+    - table: shop.refunds
+      column: status
+      type: varchar(24)
+      comment: Refund status
+  analyze_columns:
+    - shop.orders.status

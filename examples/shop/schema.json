@@ -1,0 +1,130 @@
+{
+  "instance": "demo",
+  "databases": [
+    {
+      "name": "crm",
+      "comment": "Customer master data",
+      "tables": [
+        {
+          "name": "customers",
+          "rows": 1200,
+          "comment": "Enterprise customers",
+          "columns": [
+            {"name": "id", "type": "bigint", "pk": true, "comment": "Customer id"},
+            {"name": "customer_code", "type": "varchar(32)", "unique": true, "comment": "Stable business code"},
+            {"name": "name", "type": "varchar(128)", "comment": "Display name"},
+            {"name": "email", "type": "varchar(255)", "comment": "Billing email"},
+            {"name": "created_at", "type": "timestamp", "comment": "Created at"}
+          ]
+        },
+        {
+          "name": "customer_profiles",
+          "rows": 900,
+          "comment": "Customer commercial profile",
+          "columns": [
+            {"name": "customer_id", "type": "bigint", "pk": true, "comment": "Customer id"},
+            {"name": "tier", "type": "varchar(16)", "comment": "Customer tier"},
+            {"name": "credit_limit", "type": "decimal(12,2)", "comment": "Credit limit"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "shop",
+      "comment": "Commerce transactions",
+      "tables": [
+        {
+          "name": "orders",
+          "rows": 24000,
+          "comment": "Orders",
+          "columns": [
+            {"name": "id", "type": "bigint", "pk": true, "comment": "Order id"},
+            {"name": "customer_id", "type": "bigint", "comment": "Customer id"},
+            {"name": "status", "type": "varchar(24)", "comment": "Order status"},
+            {"name": "total_amount", "type": "decimal(12,2)", "comment": "Order total"},
+            {"name": "placed_at", "type": "timestamp", "comment": "Placed at"}
+          ]
+        },
+        {
+          "name": "order_items",
+          "rows": 76000,
+          "comment": "Order line items",
+          "columns": [
+            {"name": "id", "type": "bigint", "pk": true, "comment": "Line id"},
+            {"name": "order_id", "type": "bigint", "comment": "Order id"},
+            {"name": "sku", "type": "varchar(64)", "comment": "SKU"},
+            {"name": "qty", "type": "int", "comment": "Quantity"},
+            {"name": "unit_price", "type": "decimal(12,2)", "comment": "Unit price"}
+          ]
+        },
+        {
+          "name": "refunds",
+          "rows": 1800,
+          "comment": "Refund requests",
+          "columns": [
+            {"name": "id", "type": "bigint", "pk": true, "comment": "Refund id"},
+            {"name": "order_id", "type": "bigint", "comment": "Order id"},
+            {"name": "amount", "type": "decimal(12,2)", "comment": "Refund amount"},
+            {"name": "reason", "type": "varchar(255)", "comment": "Refund reason"},
+            {"name": "created_at", "type": "timestamp", "comment": "Created at"}
+          ]
+        },
+        {
+          "name": "order_agents",
+          "rows": 31000,
+          "comment": "Order ownership",
+          "columns": [
+            {"name": "order_id", "type": "bigint", "pk": true, "comment": "Order id"},
+            {"name": "agent_id", "type": "bigint", "pk": true, "comment": "Agent id"},
+            {"name": "assigned_at", "type": "timestamp", "comment": "Assigned at"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "billing",
+      "comment": "Invoices and settlement",
+      "tables": [
+        {
+          "name": "invoices",
+          "rows": 21000,
+          "comment": "Invoices",
+          "columns": [
+            {"name": "id", "type": "bigint", "pk": true, "comment": "Invoice id"},
+            {"name": "order_id", "type": "bigint", "comment": "Order id"},
+            {"name": "customer_id", "type": "bigint", "comment": "Customer id"},
+            {"name": "amount", "type": "decimal(12,2)", "comment": "Invoice amount"},
+            {"name": "status", "type": "varchar(24)", "comment": "Invoice status"},
+            {"name": "issued_at", "type": "timestamp", "comment": "Issued at"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ops",
+      "comment": "Operations",
+      "tables": [
+        {
+          "name": "agents",
+          "rows": 300,
+          "comment": "Sales agents",
+          "columns": [
+            {"name": "id", "type": "bigint", "pk": true, "comment": "Agent id"},
+            {"name": "name", "type": "varchar(64)", "comment": "Agent name"},
+            {"name": "region", "type": "varchar(32)", "comment": "Region"}
+          ]
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {"child": "shop.orders.customer_id", "parent": "crm.customers.id", "method": "ddl_fk", "confidence": 1.0, "note": "cross-database customer reference"},
+    {"child": "crm.customer_profiles.customer_id", "parent": "crm.customers.id", "method": "ddl_fk", "confidence": 1.0},
+    {"child": "shop.order_items.order_id", "parent": "shop.orders.id", "method": "ddl_fk", "confidence": 1.0},
+    {"child": "shop.refunds.order_id", "parent": "shop.orders.id", "method": "ddl_fk", "confidence": 1.0},
+    {"child": "billing.invoices.order_id", "parent": "shop.orders.id", "method": "ddl_fk", "confidence": 1.0, "note": "cross-database order reference"},
+    {"child": "billing.invoices.customer_id", "parent": "crm.customers.id", "method": "ddl_fk", "confidence": 1.0, "note": "cross-database customer reference"},
+    {"child": "shop.order_agents.order_id", "parent": "shop.orders.id", "method": "ddl_fk", "confidence": 1.0},
+    {"child": "shop.order_agents.agent_id", "parent": "ops.agents.id", "method": "ddl_fk", "confidence": 1.0}
+  ]
+}

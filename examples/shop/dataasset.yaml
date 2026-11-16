@@ -1,0 +1,7 @@
+name: shop-demo
+dialect: mysql
+default_database: shop
+schema: schema.json
+entities: entities.yaml
+rules: rules.yaml
+sql: sql

@@ -1,0 +1,8 @@
+name: Review customer key
+description: |
+  What breaks if the customer primary key contract changes?
+  This plan analyzes an existing column and highlights every relationship
+  and SQL statement that depends on it.
+changes:
+  analyze_columns:
+    - crm.customers.id

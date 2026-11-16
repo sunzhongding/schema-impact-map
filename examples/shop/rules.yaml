@@ -1,0 +1,9 @@
+# These columns are not relationships; keep the check honest.
+ignore_columns:
+  created_at: audit timestamp
+  placed_at: audit timestamp
+  issued_at: audit timestamp
+  assigned_at: audit timestamp
+
+relation_patterns:
+  - "*_id"
