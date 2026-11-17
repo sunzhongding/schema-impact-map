@@ -1,0 +1,20 @@
+name: impact-demo
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  impact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with:
+          data: examples/shop
+          plan: examples/shop/plans/customer-key.yaml
+          comment: "true"
+          fail-on: none
