@@ -46,5 +46,6 @@ scripts/release.sh --tag       # run tests, create and push v<version>
 scripts/release.sh --release   # also open the GitHub release (gh CLI or GITHUB_TOKEN)
 ```
 
-Publishing to PyPI happens only when the GitHub release is published: `publish.yml` uses
-trusted publishing (OIDC), so no token is stored in the repository.
+Pushing the tag publishes: `publish.yml` runs on `v*` tags and uploads through trusted
+publishing (OIDC), so no token is stored in the repository. `--release` only adds the GitHub
+release notes on top.

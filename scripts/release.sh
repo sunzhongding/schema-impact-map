@@ -2,12 +2,12 @@
 # Release helper for schema-impact-map.
 #
 #   scripts/release.sh --check      # validate the release, change nothing (default)
-#   scripts/release.sh --tag        # run tests, tag v<version>, push the tag
-#   scripts/release.sh --release    # --tag, then open the GitHub release
+#   scripts/release.sh --tag        # run tests, tag v<version>, push (this publishes)
+#   scripts/release.sh --release    # --tag, then also open a GitHub release with the notes
 #
 # The version is read from src/schema_impact_map/__init__.py so the package and
-# the tag cannot drift apart. Pushing the tag publishes nothing: the publish
-# workflow only runs when a GitHub release is published.
+# the tag cannot drift apart. Pushing the tag triggers publish.yml, which uploads
+# to PyPI through trusted publishing; the GitHub release is only for release notes.
 #
 # Environment:
 #   PYTHON        interpreter for tests and JSON (default: .venv/bin/python, then python3)
@@ -105,8 +105,8 @@ say "pushed $TAG (commit $(git rev-parse "$TAG^{commit}" | cut -c1-7))"
 
 if [ "$MODE" = "tag" ]; then
   say ""
-  say "nothing published yet: publish.yml runs on a published GitHub release."
-  say "next: scripts/release.sh --release"
+  say "publish.yml is now uploading this tag to PyPI (watch the Actions tab)."
+  say "optional: scripts/release.sh --release  # add a GitHub release with the CHANGELOG notes"
   exit 0
 fi
 

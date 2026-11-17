@@ -14,7 +14,7 @@ Schema Impact Map turns a relational schema into a single interactive map of dat
 tables and columns, connects the columns that reference each other, and highlights what a
 proposed change will break — in red, orange and yellow.
 
-![Schema Impact Map](docs/map.png)
+![Schema Impact Map: zoom into a changed column and watch the impacted columns and SQL light up](docs/demo.gif)
 
 Most schema tools draw an ERD. Schema Impact Map answers a different question:
 
