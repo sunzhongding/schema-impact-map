@@ -17,4 +17,4 @@ jobs:
           data: examples/shop
           plan: examples/shop/plans/customer-key.yaml
           comment: "true"
-          fail-on: none
+          fail-on: "breaking"
