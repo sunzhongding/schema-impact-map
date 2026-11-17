@@ -188,6 +188,8 @@ schema-impact-map build  --data examples/shop --out dist
 schema-impact-map map    --data examples/shop --out site/map.html
 schema-impact-map impact --data examples/shop --plan examples/shop/plans/customer-key.yaml \
                           --out site/impact.html
+schema-impact-map impact --plan plan.yaml --format md       # comment-sized report
+schema-impact-map impact --plan plan.yaml --fail-on breaking  # CI gate
 schema-impact-map check  --data examples/shop
 schema-impact-map demo   --data examples/shop --out site
 schema-impact-map introspect --sqlite app.db --out ledger   # schema.json from a SQLite file
@@ -220,6 +222,41 @@ schema-impact-map mcp                      # MCP tools: check, impact, render, b
 
 All four tools are local and read-only: they read the ledger, parse SQL text, and write at
 most the HTML page you asked for. No database connection, no credentials, no network.
+
+## Review schema changes in a pull request
+
+`impact --format md` prints a comment-sized report; `--format json` prints the same result
+for scripts; `--fail-on` turns it into a gate that fails the job.
+
+```bash
+schema-impact-map impact --plan plan.yaml --format md
+schema-impact-map impact --plan plan.yaml --fail-on breaking
+```
+
+The repository ships a composite action that renders the report, keeps exactly one pull
+request comment up to date, and can upload the HTML map:
+
+```yaml
+# .github/workflows/schema-impact.yml
+name: schema impact
+on: pull_request
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  impact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: sunzhongding/schema-impact-map@v1
+        with:
+          data: ledger
+          plan: .schema-impact/plan.yaml
+          fail-on: breaking
+```
+
+See [docs/integrations/github-action.md](docs/integrations/github-action.md) for inputs,
+outputs, and how the comment is kept up to date.
 
 ## What this is / is not
 

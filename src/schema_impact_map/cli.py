@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -10,6 +11,7 @@ from .impact import analyze_file
 from .introspect import write_sqlite_ledger
 from .io import DataError, write_json
 from .render import write_html
+from .report import failure, summary_line, to_json, to_markdown
 
 
 DEFAULT_DATA = Path("examples/shop")
@@ -54,14 +56,31 @@ def cmd_map(args) -> int:
 def cmd_impact(args) -> int:
     graph = _build(args.data)
     payload = analyze_file(graph, args.plan)
-    write_html(args.out, payload["graph"], payload, focus=next(iter(payload["changed"]), None))
-    print(
-        f"impact: {len(payload['changed'])} changed / "
-        f"{len(payload['affected'])} affected / "
-        f"{sum(len(v) for v in payload['collisions'].values())} collisions / "
-        f"{len(payload['statements'])} SQL"
-    )
-    print(f"-> {args.out}")
+    failed, reason = failure(payload, args.fail_on)
+
+    if args.format == "html":
+        out = args.out or Path("site/impact.html")
+        write_html(out, payload["graph"], payload, focus=next(iter(payload["changed"]), None))
+        print(f"impact: {summary_line(payload)}")
+        print(f"-> {out}")
+    else:
+        if args.format == "md":
+            text = to_markdown(payload, version=__version__)
+        else:
+            text = json.dumps(
+                to_json(payload, version=__version__, fail_on=args.fail_on), indent=2
+            )
+        if args.out:
+            args.out.parent.mkdir(parents=True, exist_ok=True)
+            args.out.write_text(text + "\n", encoding="utf-8")
+            print(f"impact: {summary_line(payload)}", file=sys.stderr)
+            print(f"-> {args.out}", file=sys.stderr)
+        else:
+            print(text)
+
+    if failed:
+        print(f"fail-on {args.fail_on}: {reason}", file=sys.stderr)
+        return 1
     return 0
 
 
@@ -150,7 +169,12 @@ def build_parser() -> argparse.ArgumentParser:
     impact = sub.add_parser("impact", help="render a plan-impact map")
     impact.add_argument("--data", type=Path, default=DEFAULT_DATA)
     impact.add_argument("--plan", type=Path, required=True)
-    impact.add_argument("--out", type=Path, default=Path("site/impact.html"))
+    impact.add_argument("--format", choices=["html", "md", "json"], default="html",
+                        help="output format (default: html)")
+    impact.add_argument("--out", type=Path, default=None,
+                        help="output file (html: site/impact.html; md/json: stdout)")
+    impact.add_argument("--fail-on", choices=["none", "breaking", "collision", "affected"],
+                        default="none", help="exit 1 when the plan reaches this severity")
     impact.set_defaults(func=cmd_impact)
 
     check = sub.add_parser("check", help="validate the demo data / ledger")

@@ -4,7 +4,7 @@ description: Find what a relational schema change touches before editing migrati
 license: Apache-2.0
 metadata:
   author: sunzhongding
-  version: 0.2.0
+  version: 0.4.0
 ---
 
 # Schema Impact Map

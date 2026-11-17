@@ -1,0 +1,44 @@
+name: action
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run the action on the demo ledger
+        id: impact
+        uses: ./
+        with:
+          data: examples/shop
+          plan: examples/shop/plans/customer-key.yaml
+          comment: "false"
+
+      - name: The report is generated
+        run: |
+          echo "summary: ${{ steps.impact.outputs.summary }}"
+          test "${{ steps.impact.outputs.failed }}" = "false"
+          test -s "${{ steps.impact.outputs.markdown-path }}"
+          grep -q "Schema Impact Map" "${{ steps.impact.outputs.markdown-path }}"
+
+      - name: Run the action with a breaking gate
+        id: gate
+        continue-on-error: true
+        uses: ./
+        with:
+          data: examples/shop
+          plan: examples/shop/plans/customer-key.yaml
+          fail-on: breaking
+          comment: "false"
+
+      - name: The gate fails the job
+        run: test "${{ steps.gate.outcome }}" = "failure"

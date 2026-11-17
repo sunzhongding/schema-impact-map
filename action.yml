@@ -1,0 +1,161 @@
+name: Schema Impact Map
+description: >-
+  Show what a schema change touches, post the impact as a pull request comment,
+  and fail the check when the change reaches a severity you care about.
+author: sunzhongding
+branding:
+  icon: map
+  color: red
+
+inputs:
+  data:
+    description: Ledger folder (schema-impact-map.yaml, schema.json, entities.yaml, rules.yaml, sql/)
+    required: true
+  plan:
+    description: Plan YAML file (path) or inline YAML describing the proposed change
+    required: true
+  fail-on:
+    description: "Exit non-zero at this severity: none, breaking, collision or affected"
+    required: false
+    default: "none"
+  comment:
+    description: Post (or update) a pull request comment with the summary
+    required: false
+    default: "true"
+  artifact:
+    description: Upload the markdown, JSON and HTML map as a workflow artifact
+    required: false
+    default: "false"
+  python-version:
+    description: Python used to run the CLI
+    required: false
+    default: "3.12"
+
+outputs:
+  summary:
+    description: One line summary, e.g. "1 changed, 3 affected, 0 collisions, 2 SQL"
+    value: ${{ steps.report.outputs.summary }}
+  failed:
+    description: "true when the fail-on gate tripped"
+    value: ${{ steps.report.outputs.failed }}
+  markdown-path:
+    description: Path of the generated markdown comment
+    value: ${{ steps.paths.outputs.markdown }}
+  json-path:
+    description: Path of the generated JSON payload
+    value: ${{ steps.paths.outputs.json }}
+  html-path:
+    description: Path of the generated HTML map (empty unless artifact is true)
+    value: ${{ steps.paths.outputs.html }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install schema-impact-map
+      shell: bash
+      run: python -m pip install --quiet --disable-pip-version-check "$GITHUB_ACTION_PATH"
+
+    - name: Render impact report
+      id: report
+      shell: bash
+      env:
+        DATA: ${{ inputs.data }}
+        PLAN: ${{ inputs.plan }}
+        FAIL_ON: ${{ inputs.fail-on }}
+        WORKDIR: ${{ runner.temp }}/schema-impact-map
+      run: |
+        set -uo pipefail
+        mkdir -p "$WORKDIR"
+
+        status=0
+        schema-impact-map impact --data "$DATA" --plan "$PLAN" \
+          --format md --fail-on "$FAIL_ON" --out "$WORKDIR/impact.md" || status=$?
+        schema-impact-map impact --data "$DATA" --plan "$PLAN" \
+          --format json --fail-on "$FAIL_ON" --out "$WORKDIR/impact.json" 2>/dev/null || true
+
+        if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+          { printf '<!-- schema-impact-map -->\n'; cat "$WORKDIR/impact.md"; } >> "$GITHUB_STEP_SUMMARY"
+        fi
+
+        python3 - "$WORKDIR/impact.json" >> "$GITHUB_OUTPUT" <<'PY'
+        import json, sys
+        data = json.load(open(sys.argv[1]))
+        totals = data["summary"]
+        print("summary=" + f"{totals['changed']} changed, {totals['affected']} affected, "
+              f"{totals['collisions']} collisions, {totals['statements']} SQL")
+        print("failed=" + ("true" if data["gate"]["failed"] else "false"))
+        PY
+
+        if [ "$status" -ne 0 ]; then
+          echo "::error title=Schema impact gate::fail-on ${FAIL_ON} tripped; see the report above."
+        fi
+        echo "exit-code=$status" >> "$GITHUB_OUTPUT"
+        exit 0
+
+    - name: Record paths
+      id: paths
+      shell: bash
+      env:
+        WORKDIR: ${{ runner.temp }}/schema-impact-map
+      run: |
+        echo "markdown=$WORKDIR/impact.md" >> "$GITHUB_OUTPUT"
+        echo "json=$WORKDIR/impact.json" >> "$GITHUB_OUTPUT"
+        echo "html=$WORKDIR/impact.html" >> "$GITHUB_OUTPUT"
+
+    - name: Render HTML map
+      if: inputs.artifact == 'true'
+      shell: bash
+      env:
+        DATA: ${{ inputs.data }}
+        PLAN: ${{ inputs.plan }}
+        WORKDIR: ${{ runner.temp }}/schema-impact-map
+      run: |
+        schema-impact-map impact --data "$DATA" --plan "$PLAN" \
+          --format html --out "$WORKDIR/impact.html" >/dev/null
+
+    - name: Upload report
+      if: inputs.artifact == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: schema-impact-map
+        path: ${{ runner.temp }}/schema-impact-map
+        if-no-files-found: ignore
+
+    - name: Comment on the pull request
+      if: inputs.comment == 'true' && github.event_name == 'pull_request'
+      continue-on-error: true
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        PR: ${{ github.event.pull_request.number }}
+        WORKDIR: ${{ runner.temp }}/schema-impact-map
+      run: |
+        set -uo pipefail
+        body="$(mktemp)"
+        { printf '<!-- schema-impact-map -->\n'; cat "$WORKDIR/impact.md"; } > "$body"
+
+        existing="$(gh api "repos/$REPO/issues/$PR/comments" --paginate \
+          -q '.[] | select(.body | startswith("<!-- schema-impact-map -->")) | .id' 2>/dev/null | head -1 || true)"
+        if [ -n "${existing:-}" ]; then
+          gh api -X PATCH "repos/$REPO/issues/comments/$existing" -F body=@"$body" >/dev/null
+          echo "updated comment $existing"
+        else
+          gh api -X POST "repos/$REPO/issues/$PR/comments" -F body=@"$body" >/dev/null
+          echo "created a new comment"
+        fi
+
+    - name: Enforce the gate
+      shell: bash
+      env:
+        EXIT_CODE: ${{ steps.report.outputs.exit-code }}
+      run: |
+        if [ "${EXIT_CODE:-0}" -ne 0 ]; then
+          echo "Schema impact gate tripped (fail-on: ${{ inputs.fail-on }})."
+          exit "${EXIT_CODE}"
+        fi

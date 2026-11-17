@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0
+
+- `impact --format md|json`: a comment-sized report and a stable machine payload
+- `impact --fail-on none|breaking|collision|affected`: exit 1 when the change reaches that
+  severity, so the command can be a CI gate
+- `impact --out` is optional: html still defaults to `site/impact.html`, md/json print to
+  stdout
+- `action.yml`: composite GitHub Action that renders the report, keeps one PR comment up to
+  date, optionally uploads the HTML map, and fails the job when the gate trips
+
 ## 0.3.0
 
 - SQLite introspection: `schema-impact-map introspect --sqlite app.db --out ledger`

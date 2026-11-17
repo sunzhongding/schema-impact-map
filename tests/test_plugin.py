@@ -1,6 +1,7 @@
 import json
-import re
 from pathlib import Path
+
+import yaml
 
 from schema_impact_map import __version__
 
@@ -34,11 +35,12 @@ def test_skill_has_trigger_frontmatter():
     text = (PLUGIN / "skills" / "schema-impact-map" / "SKILL.md").read_text(encoding="utf-8")
     assert text.startswith("---\n")
     front, body = text[4:].split("\n---\n", 1)
-    assert "name: schema-impact-map" in front
-    description = re.search(r"^description: (.+)$", front, re.M)
-    assert description and len(description.group(1)) > 40
+    meta = yaml.safe_load(front)
+    assert meta["name"] == "schema-impact-map"
+    assert len(meta["description"]) > 40
+    assert meta["metadata"]["version"] == __version__
     assert "## When to use" in body
-    assert "Read-only" in body or "read-only" in body
+    assert "read-only" in body.lower()
 
 
 def test_mcp_json_declares_a_stdio_server():
