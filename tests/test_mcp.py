@@ -72,7 +72,7 @@ def test_render_writes_map_and_impact(tmp_path):
     assert "changed-add" in page
 
 
-TOOLS = {"build_graph", "check", "impact", "render", "introspect_sqlite"}
+TOOLS = {"build_graph", "check", "impact", "render", "introspect_sqlite", "context"}
 
 
 def test_create_server_registers_the_tools():
@@ -101,6 +101,16 @@ def test_introspect_sqlite_tool(tmp_path):
     again = tools.introspect_sqlite(str(db), str(tmp_path / "ledger"))
     assert again["ok"] is False
     assert "exists" in again["error"]
+
+
+def test_context_tool_returns_a_budgeted_slice():
+    result = tools.context(str(DATA), "crm.customers,shop.orders", 1500)
+    assert result["ok"] is True
+    assert result["tokens"] <= 1500
+    assert "## `crm.customers`" in result["markdown"]
+
+    missing = tools.context(str(DATA), "", 1500)
+    assert missing["ok"] is False
 
 
 def test_stdio_roundtrip():

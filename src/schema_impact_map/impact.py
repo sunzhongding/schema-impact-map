@@ -111,6 +111,28 @@ def analyze(graph: dict, delta: dict) -> dict:
         )
         changed[column["qualified"]] = {"action": "add", "severity": "info"}
 
+    for item in changes.get("rename_columns") or []:
+        old = item["from"] if isinstance(item, dict) else item
+        new = item.get("to") if isinstance(item, dict) else None
+        if not new:
+            raise DataError(f"rename needs a 'to' column: {old}")
+        column = _find_column(graph, old)
+        if not column:
+            raise DataError(f"column not found: {old}")
+        if _find_column(graph, new):
+            raise DataError(f"column already exists: {new}")
+        if old.rsplit(".", 1)[0] != new.rsplit(".", 1)[0]:
+            raise DataError(f"rename must stay in one table: {old} -> {new}")
+        added = _add_column(
+            graph,
+            old.rsplit(".", 1)[0],
+            new.rsplit(".", 1)[-1],
+            column.get("type", ""),
+            column.get("comment", ""),
+        )
+        added["proposed"] = True
+        changed[old] = {"action": "rename", "severity": "breaking", "to": new}
+
     for item in changes.get("remove_columns") or []:
         qualified = item if isinstance(item, str) else item["column"]
         if not _find_column(graph, qualified):

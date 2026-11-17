@@ -91,7 +91,11 @@ def to_markdown(payload: dict, limit: int = DEFAULT_LIMIT, version: str = "") ->
             break
         action = meta.get("action", "change")
         severity = meta.get("severity", "")
-        role = f"changed · {action}" + (f" · {severity}" if severity else "")
+        role = f"changed · {action}"
+        if meta.get("to"):
+            role += f" → `{meta['to']}`"
+        if severity:
+            role += f" · {severity}"
         lines.append(f"| `{qualified}` | {role} | plan |")
         rows += 1
 
@@ -134,7 +138,12 @@ def to_json(payload: dict, *, version: str = "", fail_on: str = "none") -> dict:
         "plan": {"name": payload["name"], "description": payload.get("description", "")},
         "summary": counts(payload),
         "changed": [
-            {"column": qualified, "action": meta.get("action"), "severity": meta.get("severity")}
+            {
+                "column": qualified,
+                "action": meta.get("action"),
+                "severity": meta.get("severity"),
+                **({"to": meta["to"]} if meta.get("to") else {}),
+            }
             for qualified, meta in payload["changed"].items()
         ],
         "affected": [

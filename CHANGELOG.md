@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0
+
+- `plan --diff <range>` / `plan --sql <file>`: derive the plan YAML from a migration diff,
+  understanding `ALTER TABLE ... ADD/DROP/RENAME COLUMN` and the Alembic `op.add_column` /
+  `op.drop_column` / `op.alter_column` calls; unmodelled statements become warnings
+- `context --for <tables> --budget <tokens>`: the schema slice an agent needs, in priority
+  order, trimmed to the budget; exposed as the `context` MCP tool
+- `rename_columns` in a plan, with the new name rendered on the map and in the report
+- README, SKILL.md and the action docs cover the new commands
+
 ## 0.4.0
 
 - `impact --format md|json`: a comment-sized report and a stable machine payload

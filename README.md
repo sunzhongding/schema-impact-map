@@ -190,6 +190,8 @@ schema-impact-map impact --data examples/shop --plan examples/shop/plans/custome
                           --out site/impact.html
 schema-impact-map impact --plan plan.yaml --format md       # comment-sized report
 schema-impact-map impact --plan plan.yaml --fail-on breaking  # CI gate
+schema-impact-map plan   --diff origin/main...HEAD --data ledger --out plan.yaml
+schema-impact-map context --data ledger --for "crm.customers,shop.orders" --budget 1500
 schema-impact-map check  --data examples/shop
 schema-impact-map demo   --data examples/shop --out site
 schema-impact-map introspect --sqlite app.db --out ledger   # schema.json from a SQLite file
@@ -257,6 +259,32 @@ jobs:
 
 See [docs/integrations/github-action.md](docs/integrations/github-action.md) for inputs,
 outputs, and how the comment is kept up to date.
+
+## Derive the plan from the migration
+
+Writing the plan YAML by hand is the step people skip. Let the migration write it:
+
+```bash
+schema-impact-map plan --diff origin/main...HEAD --data ledger --out plan.yaml
+```
+
+`plan` reads the added lines of the diff (or a file with `--sql migration.sql`), understands
+`ALTER TABLE ... ADD/DROP/RENAME COLUMN` and the Alembic `op.add_column` / `op.drop_column` /
+`op.alter_column` calls, and qualifies bare table names through the ledger. Anything it
+cannot model (CREATE/DROP TABLE, indexes, triggers) becomes a warning, never a guess.
+
+## Give an agent the slice it needs
+
+An agent cannot read 4,000 columns. Give it the ones that matter:
+
+```bash
+schema-impact-map context --data ledger --for "crm.customers,shop.orders" --budget 1500
+```
+
+It prints the seed tables, their key columns, the relationships that reach them and the SQL
+that touches them, in priority order, and stops at the token budget instead of cutting a line.
+The MCP server exposes the same slice as the `context` tool, and the `SKILL.md` tells agents
+to call it before reading the ledger.
 
 ## What this is / is not
 

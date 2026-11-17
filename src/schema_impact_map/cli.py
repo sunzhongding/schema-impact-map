@@ -5,11 +5,15 @@ import json
 import sys
 from pathlib import Path
 
+import yaml
+
 from . import __version__
 from .build import build_from_dir
+from .context import build_context
 from .impact import analyze_file
 from .introspect import write_sqlite_ledger
 from .io import DataError, write_json
+from .plan import added_lines, derive_plan, git_diff
 from .render import write_html
 from .report import failure, summary_line, to_json, to_markdown
 
@@ -141,6 +145,71 @@ def cmd_introspect(args) -> int:
     return 0
 
 
+def _unique_tables(graph: dict) -> dict[str, str]:
+    counts: dict[str, int] = {}
+    for table in graph["tables"]:
+        counts[table["name"]] = counts.get(table["name"], 0) + 1
+    return {
+        table["name"]: table["qualified"]
+        for table in graph["tables"]
+        if counts[table["name"]] == 1
+    }
+
+
+def cmd_plan(args) -> int:
+    resolver = _unique_tables(build_from_dir(args.data)) if args.data else {}
+    if args.diff:
+        text = added_lines(git_diff(args.diff))
+        source = args.diff
+    elif args.sql:
+        if str(args.sql) == "-":
+            text = sys.stdin.read()
+            source = "stdin"
+        else:
+            text = args.sql.read_text(encoding="utf-8")
+            source = args.sql.name
+    else:
+        raise DataError("pass --diff <range> or --sql <file>")
+
+    plan, warnings = derive_plan(text, source=source, dialect=args.dialect, resolver=resolver)
+    if args.name:
+        plan["name"] = args.name
+    changes = plan["changes"]
+    totals = " / ".join(
+        f"{len(changes[key])} {key.split('_')[0]}"
+        for key in ("add_columns", "remove_columns", "rename_columns", "analyze_columns")
+        if key in changes
+    )
+    if args.out:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(yaml.safe_dump(plan, sort_keys=False), encoding="utf-8")
+        print(f"plan: {totals} -> {args.out}")
+    else:
+        print(yaml.safe_dump(plan, sort_keys=False), end="")
+        print(f"plan: {totals}", file=sys.stderr)
+    for warning in warnings:
+        print(f"  ! {warning}", file=sys.stderr)
+    return 0
+
+
+def cmd_context(args) -> int:
+    graph = build_from_dir(args.data)
+    text, stats = build_context(graph, [part for part in args.for_.split(",")], args.budget)
+    if args.out:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(text, encoding="utf-8")
+        print(
+            f"context: {stats['tokens']} tokens / {stats['tables']} tables -> {args.out}",
+            file=sys.stderr,
+        )
+    else:
+        print(text)
+        print(f"context: {stats['tokens']} tokens / {stats['tables']} tables", file=sys.stderr)
+    for seed in stats["unmatched"]:
+        print(f"  ! nothing matched for: {seed}", file=sys.stderr)
+    return 0
+
+
 def cmd_mcp(args) -> int:
     from .mcp import main as serve_mcp
 
@@ -208,6 +277,25 @@ def build_parser() -> argparse.ArgumentParser:
         help="also write schema-impact-map.yaml / entities.yaml / rules.yaml if missing",
     )
     introspect.set_defaults(func=cmd_introspect)
+
+    plan = sub.add_parser("plan", help="derive a plan YAML from migration SQL")
+    plan.add_argument("--diff", help="git revision range, e.g. origin/main...HEAD")
+    plan.add_argument("--sql", type=Path, help="SQL file to read, or - for stdin")
+    plan.add_argument("--data", type=Path, help="ledger folder used to qualify bare table names")
+    plan.add_argument("--dialect", default="mysql", help="sqlglot dialect (default: mysql)")
+    plan.add_argument("--name", help="plan name (default: derived from the source)")
+    plan.add_argument("--out", type=Path, help="write the plan here (default: stdout)")
+    plan.set_defaults(func=cmd_plan)
+
+    context = sub.add_parser(
+        "context", help="print the schema slice an agent needs for a few tables"
+    )
+    context.add_argument("--data", type=Path, default=DEFAULT_DATA)
+    context.add_argument("--for", dest="for_", required=True,
+                         help="comma separated tables or columns")
+    context.add_argument("--budget", type=int, default=1500, help="token budget (default: 1500)")
+    context.add_argument("--out", type=Path, help="write the markdown here (default: stdout)")
+    context.set_defaults(func=cmd_context)
 
     sub.add_parser(
         "mcp",

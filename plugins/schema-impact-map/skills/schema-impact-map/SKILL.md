@@ -4,7 +4,7 @@ description: Find what a relational schema change touches before editing migrati
 license: Apache-2.0
 metadata:
   author: sunzhongding
-  version: 0.4.0
+  version: 0.5.0
 ---
 
 # Schema Impact Map
@@ -43,10 +43,16 @@ generate `schema.json` from `information_schema` (read-only) or from DDL files.
 ## Commands
 
 ```bash
-schema-impact-map check  --data <ledger>                       # validate the ledger
-schema-impact-map impact --data <ledger> --plan <plan.yaml> --out site/impact.html
-schema-impact-map map    --data <ledger> --out site/map.html   # full map
+schema-impact-map check   --data <ledger>                      # validate the ledger
+schema-impact-map context --data <ledger> --for "t1,t2" --budget 1500
+schema-impact-map impact  --data <ledger> --plan <plan.yaml> --format md
+schema-impact-map plan    --diff origin/main...HEAD --data <ledger> --out plan.yaml
+schema-impact-map map     --data <ledger> --out site/map.html  # full map
 ```
+
+Read `context` before the ledger: it returns the relevant tables, key columns, relationships
+and SQL inside a token budget. `plan --diff` turns a migration diff into a plan when the user
+did not write one.
 
 With the MCP server (`schema-impact-map mcp`) the same work is available as the tools
 `check`, `impact`, `render` and `build_graph`.

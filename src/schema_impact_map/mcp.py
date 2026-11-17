@@ -19,6 +19,7 @@ from pathlib import Path
 
 from . import __version__
 from .build import CONFIG_FILE, build_from_dir
+from .context import build_context
 from .impact import analyze
 from .introspect import write_sqlite_ledger
 from .io import DataError, load_yaml, load_yaml_text
@@ -239,6 +240,23 @@ def introspect_sqlite(
     return {"ok": True, **result}
 
 
+def context(data_dir: str = ".", targets: str = "", budget: int = 1500) -> dict:
+    """Return the schema slice an agent needs, trimmed to a token budget.
+
+    ``targets`` is a comma separated list of tables or columns that are about to change,
+    for example ``crm.customers,shop.orders``. The result is markdown: seed tables,
+    key columns, relationships and the SQL that touches them.
+    """
+    try:
+        graph = build_from_dir(_data_dir(data_dir))
+        text, stats = build_context(
+            graph, [item for item in targets.split(",")], budget
+        )
+    except DataError as exc:
+        return {"ok": False, "error": str(exc)}
+    return {"ok": True, "markdown": text, **stats}
+
+
 def create_server():
     """Build the MCP server; imported lazily so the CLI works without the extra."""
     from mcp.server.mcpserver import MCPServer
@@ -248,7 +266,7 @@ def create_server():
         version=__version__,
         instructions=INSTRUCTIONS,
     )
-    for tool in (build_graph, check, impact, render, introspect_sqlite):
+    for tool in (build_graph, check, impact, render, introspect_sqlite, context):
         server.add_tool(tool)
     return server
 
