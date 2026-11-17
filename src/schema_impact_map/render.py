@@ -24,6 +24,11 @@ def _count(n: int, word: str) -> str:
     return f"{n} {word}" if n == 1 else f"{n} {word}s"
 
 
+def _short(value: str, limit: int) -> str:
+    value = (value or "").strip()
+    return value if len(value) <= limit else value[: limit - 1] + "…"
+
+
 def _impact_classes(qualified: str, impact: dict | None) -> str:
     if not impact:
         return ""
@@ -165,10 +170,13 @@ def _svg(graph: dict, layout: dict, impact: dict | None) -> str:
             f'height="{box["h"]}" rx="10"/>'
         )
         parts.append(
-            f'<text class="db-title" x="{box["x"] + 14}" y="{box["y"] + 22}" font-size="13" '
-            f'font-weight="600">{_e(box["name"])} '
-            f'<tspan font-weight="400" font-size="11" fill="#6b7280">'
-            f'{_count(box["tables"], "table")} / {_count(box["columns"], "column")}</tspan></text>'
+            f'<text class="db-title" x="{box["x"] + 14}" y="{box["y"] + 21}" font-size="13" '
+            f'font-weight="600">'
+            f'<tspan class="db-kicker" font-size="9" font-weight="700" letter-spacing=".09em" '
+            f'fill="#8b95a3">DATABASE  </tspan>{_e(box["name"])}</text>'
+            f'<text class="db-counts" x="{box["x"] + box["w"] - 14}" y="{box["y"] + 21}" '
+            f'font-size="10.5" fill="#8b95a3" text-anchor="end">'
+            f'{_count(box["tables"], "table")} · {_count(box["columns"], "column")}</text>'
         )
 
     normal_edges = []
@@ -227,7 +235,7 @@ def _svg(graph: dict, layout: dict, impact: dict | None) -> str:
             f'<g class="{table_cls}"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="7"/>'
             f'<rect class="table-head" x="{x}" y="{y}" width="{w}" height="{HEADER_H}" rx="7"/>'
             f'<text class="table-name" x="{x + 12}" y="{y + 19}" font-size="12" font-weight="600">'
-            f'{_e(table["name"])}</text>'
+            f'{_e(_short(qname, 34))}</text>'
             f'<text class="table-meta" x="{x + w - 12}" y="{y + 19}" font-size="10" '
             f'text-anchor="end">{_count(len(table["columns"]), "column")}</text></g>'
         )
@@ -238,20 +246,25 @@ def _svg(graph: dict, layout: dict, impact: dict | None) -> str:
             fy = y + HEADER_H + row * ROW_H
             classes = _impact_classes(column["qualified"], impact)
             cls = "field" + (f" {classes}" if classes else "")
-            label = column["name"]
-            if len(label) > 28:
-                label = label[:27] + "…"
+            column_type = _short(column.get("type", ""), 18)
+            label = _short(column["name"], 22 if column_type else 30)
             role = _entity_role(graph, column["qualified"])
             badge = ""
             if role:
-                badge = f'<text class="field-badge" x="{fx + FIELD_W - 26}" y="{fy + 14}">{role}</text>'
+                badge = f'<text class="field-badge" x="{fx + FIELD_W - 12}" y="{fy + 14}">{role}</text>'
             elif column.get("proposed"):
-                badge = f'<text class="field-badge proposed-badge" x="{fx + FIELD_W - 26}" y="{fy + 14}">+</text>'
+                badge = f'<text class="field-badge proposed-badge" x="{fx + FIELD_W - 12}" y="{fy + 14}">+</text>'
+            type_label = (
+                f'<text class="field-type" x="{fx + FIELD_W - 28}" y="{fy + 14}" '
+                f'text-anchor="end">{_e(column_type)}</text>'
+                if column_type
+                else ""
+            )
             parts.append(
                 f'<g class="{cls}" data-q="{_e(column["qualified"])}">'
                 f'<rect x="{fx}" y="{fy}" width="{FIELD_W - 10}" height="{ROW_H - 1}"/>'
                 f'<text class="field-name" x="{fx + 6}" y="{fy + 14}">{_e(label)}</text>'
-                f"{badge}<title>{_e(column['qualified'])} · {_e(column.get('type', ''))}"
+                f"{type_label}{badge}<title>{_e(column['qualified'])} · {_e(column.get('type', ''))}"
                 f" {_e(column.get('comment', ''))}</title></g>"
             )
 
@@ -462,8 +475,10 @@ def render_html(graph: dict, impact: dict | None = None, focus: str | None = Non
   .table-card.impact-table.soft .table-head {{ fill:#fff7e8; }}
   .table-name {{ fill:#263243; }}
   .table-meta {{ fill:#8b95a3; }}
+  .db-counts {{ fill:#8b95a3; }}
   .field > rect {{ fill:transparent; }}
   .field-name {{ fill:#3b414a; font-size:11px; }}
+  .field-type {{ fill:#9aa4b2; font-size:8.5px; }}
   .field:hover > rect {{ fill:#eef6ff; }}
   .field-badge {{ fill:#8a99ad; font-size:9px; font-weight:700; text-anchor:end; }}
   .field-badge.proposed-badge {{ fill:var(--amber); }}

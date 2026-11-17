@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.1
+
+- the map names every level: `DATABASE billing` on the box, `crm.customers` on the table
+  card, and the column type next to each field name (`customer_id bigint`)
+- screenshots, the demo GIF and the social preview are regenerated with the new labels
+
 ## 0.5.0
 
 - `plan --diff <range>` / `plan --sql <file>`: derive the plan YAML from a migration diff,

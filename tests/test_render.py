@@ -45,3 +45,13 @@ def test_rendered_pages_have_english_labels_only():
     for name, page in pages.items():
         leftovers = re.findall(r"[\u3000\u4e00-\u9fff\uff00-\uffef]+", page)
         assert not leftovers, f"{name} page has non-English labels: {leftovers[:5]}"
+
+
+def test_map_labels_carry_database_table_and_field_definition():
+    graph = build_from_dir(DATA)
+    page = render_html(graph)
+    assert "DATABASE" in page
+    assert ">crm.customers</text>" in page          # qualified table name
+    assert ">shop.orders</text>" in page
+    assert "field-type" in page                     # column type next to the name
+    assert ">varchar(32)</text>" in page
